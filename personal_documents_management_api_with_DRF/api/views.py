@@ -1,6 +1,9 @@
 from django.http import HttpResponse
 from django.db.models import Q
 
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
 from rest_framework import status  
 from rest_framework.response import Response  
 from rest_framework.views import APIView
@@ -13,8 +16,12 @@ from .serializers import UserSerializer, DocumentSerializer
 from .models import CustomUser, Documents, DocAcess
 
 
+
+
 #================================= Create a new User
 class RegistrationUserView(APIView):
+
+    @swagger_auto_schema(request_body=UserSerializer,responses={201: "Created Response Description"}) 
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         print(request.data)
@@ -30,8 +37,13 @@ class RegistrationUserView(APIView):
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+
+
 #======================================= User login with token
 class LoginUserView(APIView):
+
+    @swagger_auto_schema(request_body=UserSerializer,responses={201: "Created Response Description"})
     def post(self, request):
         try:
             user = CustomUser.objects.get(username=request.data.get('username'))
@@ -54,11 +66,13 @@ class DocumentsView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = (FileUploadParser,)
 
+    @swagger_auto_schema(responses={200: DocumentSerializer(many=True)})
     def get(self, request):
         documents = Documents.objects.all()
         serializer = DocumentSerializer(documents, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
+        return Response(serializer.data, status=status.HTTP_200_OK)    
+
+    @swagger_auto_schema(request_body=DocumentSerializer,esponses={201: "Created Response Description"})
     def post(self, request):
         serializer = DocumentSerializer(data=request.data)
         if serializer.is_valid():
@@ -77,12 +91,14 @@ class DocumentCRUD(APIView):
             return Documents.objects.get(id=pk)
         except Exception as E:
             return None
-    
+        
+    @swagger_auto_schema(responses={200: DocumentSerializer(many=True)})
     def get(self, request, pk):
         document = self.target_document(pk)
         serializer = DocumentSerializer(document)
         return Response(serializer.data, status=status.HTTP_302_FOUND)
     
+    @swagger_auto_schema(request_body=DocumentSerializer,esponses={201: "Created Response Description"})
     def put(self, request, pk):
         document = self.target_document(pk)
         print(request.user)
@@ -94,6 +110,8 @@ class DocumentCRUD(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+
+    @swagger_auto_schema(responses={204: "No Content"})
     def delete(self, request, pk):
         document = self.target_document(pk)
         if document is None:
@@ -114,6 +132,7 @@ class DocumentDownload(APIView):
     authentication_classes = [SessionAuthentication,TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(responses={200: "Ok"})
     def get(self, request, pk):
         try:
             target_doc = Documents.objects.get(id=pk)
@@ -145,6 +164,7 @@ class DocumentShareView(APIView):
     authentication_classes = [SessionAuthentication,TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(request_body=DocumentSerializer,esponses={201: "Created Response Description"})
     def post(self, request, pk):
         doc = Documents.objects.get(id=pk)
         if doc.creator != request.user:
@@ -161,6 +181,7 @@ class DocumentSearchView(APIView):
     authentication_classes = [SessionAuthentication,TokenAuthentication]
     permission_classes = [IsAuthenticated]
     
+    @swagger_auto_schema(responses={200: DocumentSerializer(many=True)})
     def get(self, request):
         query = request.query_params.get('q', '')
         all_docs = Documents.objects.filter(

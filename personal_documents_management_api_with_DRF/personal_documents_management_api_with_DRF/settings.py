@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'rest_framework',
     'rest_framework.authtoken',
+    'drf_yasg',
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -126,3 +127,17 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+SWAGGER_SETTINGS = {
+   'SECURITY_DEFINITIONS': {
+      'Basic': {
+            'type': 'basic'
+      },
+      'Token': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+      }
+   }
+}
